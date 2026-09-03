@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoolabSchool Bilik Yarışı</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
+
+/* ============================================
+   KONFIQURASIYA - Fayl yollarınızı bura yazın
+   ============================================ */
+:root {
+  /* Loqo rəngləri: Tünd göy, Mavi, Narıncı, Sarı */
+  --c-darkblue: #1a3a5c;
+  --c-blue: #2d7dd2;
+  --c-orange: #f5a623;
+  --c-yellow: #f8e71c;
+  --c-cyan: #00d4ff;
+
+  --bg: #0f1d3a;
+  --card-bg: rgba(255,255,255,0.05);
+  --glass: rgba(255,255,255,0.07);
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.65);
+  --success: #00e676;
+  --danger: #ff5252;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  width: 100vw; height: 100vh;
+}
+
+#app {
+  width: 100vw; height: 100vh;
+  position: relative;
+}
+
+/* ============================================
+   ARXA FON - Loqo rənglərinə uyğun
+   ============================================ */
+.bg-anim {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; z-index: -2;
+  background:
+    radial-gradient(ellipse at 10% 15%, rgba(45,125,210,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 85%, rgba(245,166,35,0.28) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(248,231,28,0.2) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 25%, rgba(0,212,255,0.18) 0%, transparent 40%),
+    radial-gradient(ellipse at 25% 75%, rgba(245,166,35,0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 40% 80%, rgba(45,125,210,0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 20%, rgba(248,231,28,0.1) 0%, transparent 45%),
+    var(--bg);
+  animation: bgShift 12s ease-in-out infinite;
+}
+
+@keyframes bgShift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(8deg); }
+}
+
+/* Kənar rəng axıntıları */
+.bg-anim::after {
+  content: '';
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background:
+    linear-gradient(180deg, rgba(45,125,210,0.15) 0%, transparent 12%, transparent 88%, rgba(245,166,35,0.15) 100%),
+    linear-gradient(90deg, rgba(26,58,92,0.15) 0%, transparent 8%, transparent 92%, rgba(0,212,255,0.15) 100%),
+    linear-gradient(45deg, rgba(248,231,28,0.05) 0%, transparent 30%),
+    linear-gradient(-45deg, rgba(245,166,35,0.05) 0%, transparent 30%);
+  pointer-events: none;
+}
+
+/* ============================================
+   SLAYD ÜMUMİ
+   ============================================ */
+.slide {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+  padding: 40px;
+}
+
+.slide.active {
+  opacity: 1; pointer-events: all;
+}
+
+/* ============================================
+   ÜMUMİ KOMPONENTLƏR
+   ============================================ */
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 28px;
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.neon-text-blue {
+  text-shadow: 0 0 15px rgba(45,125,210,0.6), 0 0 30px rgba(45,125,210,0.3);
+}
+.neon-text-orange {
+  text-shadow: 0 0 15px rgba(245,166,35,0.6), 0 0 30px rgba(245,166,35,0.3);
+}
+
+.slide-num {
+  position: absolute; top: 22px; right: 30px;
+  font-size: 15px; color: rgba(255,255,255,0.25);
+  font-weight: 600; letter-spacing: 1px;
+}
+
+.nav-hint {
+  position: absolute; bottom: 25px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px; color: rgba(255,255,255,0.35);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.nav-hint kbd {
+  padding: 5px 10px; background: rgba(255,255,255,0.08);
+  border-radius: 6px; font-family: inherit; font-size: 13px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.progress-bar {
+  position: absolute; top: 0; left: 0;
+  height: 3px; z-index: 100;
+  background: linear-gradient(90deg, var(--c-blue), var(--c-orange), var(--c-yellow));
+  transition: width 0.5s ease;
+}
+
+/* ============================================
+   TİTUL SLAYD
+   ============================================ */
+.title-slide .logo-wrap {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-darkblue), var(--c-blue));
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 30px;
+  box-shadow: 0 0 50px rgba(45,125,210,0.4), 0 0 100px rgba(245,166,35,0.15);
+  animation: logoPulse 2.5s ease-in-out infinite;
+  overflow: hidden;
+  border: 3px solid rgba(255,255,255,0.15);
+}
+
+.title-slide .logo-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.title-slide .logo-fallback {
+  font-size: 32px; font-weight: 900; color: white;
+  text-align: center; line-height: 1.1;
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(45,125,210,0.4); }
+  50% { transform: scale(1.04); box-shadow: 0 0 70px rgba(45,125,210,0.6), 0 0 120px rgba(245,166,35,0.2); }
+}
+
+.title-slide h1 {
+  font-size: 76px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-cyan), var(--c-orange), var(--c-yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 15px;
+  animation: titleZoom 0.9s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes titleZoom {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.title-slide .subtitle {
+  font-size: 30px; color: var(--text-dim);
+  animation: fadeUp 0.9s ease-out 0.25s both;
+}
+
+/* ============================================
+   QAYDALAR
+   ============================================ */
+.rules-card {
+  max-width: 800px; width: 100%; padding: 45px;
+}
+
+.rules-card h2 {
+  font-size: 46px; margin-bottom: 35px; text-align: center;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.rule-item {
+  display: flex; align-items: center; gap: 18px;
+  padding: 16px 22px; margin-bottom: 14px;
+  background: rgba(255,255,255,0.035);
+  border-radius: 14px;
+  border-left: 4px solid var(--c-blue);
+  font-size: 20px;
+  animation: slideInLeft 0.5s ease-out both;
+}
+
+.rule-item:nth-child(2) { animation-delay: 0.1s; border-left-color: var(--c-cyan); }
+.rule-item:nth-child(3) { animation-delay: 0.2s; border-left-color: var(--c-orange); }
+.rule-item:nth-child(4) { animation-delay: 0.3s; border-left-color: var(--c-yellow); }
+.rule-item:nth-child(5) { animation-delay: 0.4s; border-left-color: var(--c-blue); }
+
+@keyframes slideInLeft {
+  0% { transform: translateX(-40px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeUp {
+  0% { transform: translateY(25px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ============================================
+   TUR SLAYDLARI
+   ============================================ */
+.tur-slide h2 {
+  font-size: 110px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-cyan), var(--c-orange), var(--c-yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: turZoom 0.7s cubic-bezier(0.34,1.56,0.64,1);
+  text-align: center;
+}
+
+@keyframes turZoom {
+  0% { transform: scale(0.25) rotate(-8deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.tur-slide .tur-sub {
+  font-size: 32px; color: var(--text-dim); margin-top: 18px;
+  animation: fadeUp 0.7s ease-out 0.2s both;
+}
+
+/* ============================================
+   HİM-CİM SLAYD
+   ============================================ */
+.himcim-slide h2 {
+  font-size: 90px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-orange), var(--c-yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: bounceIn 0.8s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.himcim-slide .himcim-sub {
+  font-size: 28px; color: var(--text-dim); margin-top: 15px;
+  animation: fadeUp 0.6s ease-out 0.3s both;
+}
+
+/* ============================================
+   SUALLAR
+   ============================================ */
+.question-slide { padding: 25px; }
+
+.q-card {
+  max-width: 1000px; width: 100%;
+  padding: 45px 55px; text-align: center;
+  position: relative;
+}
+
+.q-number {
+  font-size: 22px; font-weight: 700;
+  color: var(--c-orange);
+  margin-bottom: 18px;
+  text-transform: uppercase; letter-spacing: 4px;
+}
+
+.q-text {
+  font-size: 34px; font-weight: 700;
+  line-height: 1.45; margin-bottom: 30px;
+}
+
+/* Timer */
+.timer-area {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  margin-top: 10px;
+}
+
+.timer-display {
+  font-size: 90px; font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s, transform 0.2s;
+  line-height: 1;
+}
+
+.timer-display.normal { color: var(--c-orange); }
+.timer-display.warning {
+  color: var(--danger);
+  text-shadow: 0 0 25px rgba(255,82,82,0.5);
+  animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+.timer-display.paused {
+  color: var(--c-cyan);
+  opacity: 0.7;
+}
+
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.timer-label {
+  font-size: 18px; color: var(--text-dim);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.timer-pause-hint {
+  font-size: 14px; color: rgba(255,255,255,0.3);
+  margin-top: 5px;
+}
+
+/* Countdown 3-2-1 overlay */
+.countdown-321 {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 140px; font-weight: 900;
+  color: var(--danger);
+  text-shadow: 0 0 40px rgba(255,82,82,0.7);
+  animation: countPop 0.7s ease-out forwards;
+  z-index: 20; pointer-events: none;
+}
+
+@keyframes countPop {
+  0% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+  40% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+}
+
+.times-up {
+  font-size: 56px; font-weight: 900;
+  color: var(--danger);
+  animation: shake 0.5s ease-in-out;
+  text-shadow: 0 0 20px rgba(255,82,82,0.5);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-12px); }
+  40% { transform: translateX(12px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+
+/* ============================================
+   CAVABLAR
+   ============================================ */
+.answer-slide .a-card {
+  max-width: 850px; width: 100%;
+  padding: 55px; text-align: center;
+  background: linear-gradient(135deg, rgba(0,230,118,0.08), rgba(0,230,118,0.03));
+  border: 2px solid rgba(0,230,118,0.25);
+}
+
+.answer-label {
+  font-size: 26px; font-weight: 700;
+  color: var(--success);
+  margin-bottom: 18px;
+  text-transform: uppercase; letter-spacing: 5px;
+}
+
+.answer-text {
+  font-size: 46px; font-weight: 800;
+  color: var(--success);
+  animation: answerReveal 0.7s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes answerReveal {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================
+   ŞƏKİL / VİDEO
+   ============================================ */
+.media-box {
+  margin: 25px auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  border: 2px solid rgba(255,255,255,0.1);
+  max-width: 100%;
+}
+
+.media-box img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+.media-box video {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+.img-q19 {
+  width: 380px; height: 280px;
+}
+
+.vid-q35 {
+  width: 720px; height: 405px;
+}
+
+.media-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-dim);
+  font-size: 16px;
+  text-align: center;
+  padding: 20px;
+}
+
+.media-placeholder .ph-icon { font-size: 50px; opacity: 0.4; }
+
+/* ============================================
+   SƏSSİZ SİNEMA
+   ============================================ */
+.silent-card {
+  max-width: 700px; width: 100%;
+  padding: 55px; text-align: center;
+}
+
+.silent-icon { font-size: 90px; margin-bottom: 20px; }
+.silent-title {
+  font-size: 52px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-orange), var(--c-yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+.silent-note {
+  font-size: 22px; color: var(--text-dim);
+  line-height: 1.6; max-width: 500px; margin: 0 auto;
+}
+
+/* ============================================
+   FİNAL
+   ============================================ */
+.final-slide h2 {
+  font-size: 68px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-cyan), var(--c-orange), var(--c-yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 15px;
+  animation: titleZoom 0.9s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.final-slide .final-sub {
+  font-size: 30px; color: var(--text-dim);
+  margin-bottom: 35px;
+  animation: fadeUp 0.9s ease-out 0.25s both;
+}
+
+.final-slide .final-logo {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-darkblue), var(--c-blue));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(45,125,210,0.4);
+  animation: logoPulse 2.5s ease-in-out infinite;
+  overflow: hidden;
+  border: 3px solid rgba(255,255,255,0.15);
+}
+
+.final-slide .final-logo img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+/* ============================================
+   KONFETTI
+   ============================================ */
+#confetti-canvas {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 50;
+}
+
+.star {
+  position: absolute; font-size: 28px;
+  animation: starFloat 2s ease-out forwards;
+  pointer-events: none; z-index: 60;
+}
+
+@keyframes starFloat {
+  0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-180px) scale(1.4) rotate(360deg); opacity: 0; }
+}
+
+/* ============================================
+   RESPONSIV
+   ============================================ */
+@media (max-width: 768px) {
+  .title-slide h1 { font-size: 42px; }
+  .tur-slide h2 { font-size: 56px; }
+  .q-text { font-size: 22px; }
+  .timer-display { font-size: 64px; }
+  .answer-text { font-size: 32px; }
+  .final-slide h2 { font-size: 42px; }
+  .himcim-slide h2 { font-size: 56px; }
+  .vid-q35 { width: 100%; height: auto; }
+  .img-q19 { width: 100%; height: auto; max-height: 220px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="progress-bar" id="progressBar"></div>
+  <canvas id="confetti-canvas"></canvas>
+  <div id="slides-container"></div>
+</div>
+
+<script>
+// ============================================
+// KONFIQURASIYA - Fayl yollarınızı bura yazın
+// ============================================
+const CONFIG = {
+  // Loqo şəkli (Başlıq və Final slaydlarda)
+  logoPath: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/CoolabSchool_logo_PC.png",
+
+  // Giriş səsi (Başlıq slaydında)
+  introSound: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/Giris_sesi.mp3",
+
+  // 19-cu sual şəkli (A Bug's Life --> Dot)
+  q19ImagePath: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/Bugs_life_Dot.jpeg",
+
+  // 35-ci sual videosu (Buz Devri - Sid)
+  q35VideoPath: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/Buz_Devri_Sid%20(1).mp4",
+
+  // Sual səsi
+  questionSound: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/soru_ses.mp3",
+
+  // Cavab səsi
+  answerSound: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/cavab_ses.wav",
+
+  // Metro səsi (14-cü sual əvəzinə)
+  metroSound: "file:///C:/Users/test/Downloads/Bilik_Yarışı_Avqust/Metro Səsi.m4a",
+};
+
+// ============================================
+// SLAYD MƏLUMATLARI
+// ============================================
+const slidesData = [];
+function add(type, data) { slidesData.push({ type, ...data }); }
+
+// 0: Başlıq
+add('title', {});
+
+// 1: Qaydalar
+add('rules', {
+  rules: [
+    { icon: '⏱️', text: 'Hər suala 30 saniyə vaxt verilir.' },
+    { icon: '👥', text: 'Komanda birlikdə cavab verir.' },
+    { icon: '✅', text: 'Cavab bitdikdən sonra növbəti slaydda düzgün cavab göstərilir.' },
+    { icon: '🏆', text: 'Ən çox düzgün cavab verən komanda qalib olur.' }
+  ]
+});
+
+// I TUR
+add('tur', { tur: 'I TUR', subtitle: 'Başlayaq!' });
+
+const q1 = [
+  { q: 'Bir üçbucağın daxili bucaqlarının cəmi neçə <span style="color:blue">dərəcədir?</span>', a: '180 dərəcə' },
+  { q: 'Şahmatda ən güclü fiqur hansıdır?', a: 'Vəzir' },
+  { q: 'Hansı heyvan öz rəngini dəyişə bilir?', a: 'Buqələmun' },
+  { q: 'Elxan hər gün 10 səhifə kitab oxuyur. Şamil isə həftədə sadəcə bir dəfə - Çərşənbə günü 60 səhifə oxuyur. <span style="color:red">Həftəsonunda</span> kim daha çox səhifə oxuyub?', a: 'Elxan' },
+  { q: 'Bir onilliyə neçə il daxildir?', a: '10 il' },
+  { q: 'Bu qapalı su hövzəsi dünyada <span style="color:green">ən böyük göl</span> hesab olunur.', a: 'Xəzər dənizi' },
+  { q: 'İnsanlar yaşamaq üçün hansı qazı udurlar?', a: 'Oksigen' },
+  { q: 'Su hansı temperaturda qaynayır?', a: '100ºC' },
+  { q: 'Bal hansı heyvanlar tərəfindən hazırlanır?', a: 'Arılar' }
+];
+q1.forEach((item, i) => {
+  add('question', { num: i + 1, text: item.q, tur: 'I TUR' });
+  add('answer', { num: i + 1, text: item.a });
+});
+
+// 10-cu sual: Ağırlıq testi
+add('agirlik', { num: 10 });
+add('answer', { num: 10, text: '135 Qram' });
+
+
+// II TUR
+add('tur', { tur: 'II TUR', subtitle: 'Daha da çətinləşir!' });
+
+const q2 = [
+  { q: 'İnternetdə axtarış zamanı yazılan <span style="color:red">"WWW"</span>-nun açılışını yazın.', a: 'World Wide Web' },
+  { q: '<span style="color:green">"Dünya Azərbaycanlıların Həmrəylik Günü"</span> hansı ayda qeyd olunur?', a: 'Dekabr' },
+  { q: 'Ən çox <span style="color:yellow">sədaqəti</span> ilə tanınan heyvan hansıdır?', a: 'İt' },
+  { q: 'Tikilməsi zamanı heç bir mismardan istifadə olunmayan məşhur <span style="color:red">Şəki</span> abidəsi hansıdır?', a: 'Şəki Xan Sarayı' },
+  { q: '<span style="color:brown">Koroğlunun</span> əsl adı nə idi?', a: 'Rövşən' },
+  { q: 'Azərbaycanın ən uzun çayı hansıdır?', a: 'Kür' },
+  { q: 'Bir ailədə 5 bacı var. Hər bacının 1 qardaşı var. Ailədə neçə uşaq var?', a: '6' },
+  { q: 'Şəkildə gördüyünüz "Bir Böceğin Yaşamı" filmindəki <span style="color:red">obrazın</span> adı nədir?', a: 'Dot', hasImage: true },
+  { q: '<span style="color:blue">Azərbaycan dövlət himninin</span> sözləri kimə məxsusdur?', a: 'Əhməd Cavad' }
+];
+
+// Sual 11, 12, 13 (ilk 3 sual)
+q2.slice(0, 3).forEach((item, i) => {
+  const n = 11 + i;
+  add('question', { num: n, text: item.q, tur: 'II TUR', hasImage: item.hasImage });
+  add('answer', { num: n, text: item.a });
+});
+
+// 14-cü sual: Metro səsi + sual + cavab (3 slayd)
+// Bu 3 slayd birlikdə 14-cü sualı təşkil edir
+// 13-cü sualın cavabından ("İt") sonra gəlir
+
+add('metroSound', { num: 14 });
+add('question', { num: 14, text: 'Dinlədiyiniz səs yazısı hansı <span style="color:#2d7dd2;font-weight:800;">Metro Stansiyasının</span> səs yazısıdır?', tur: 'II TUR' });
+add('answer', { num: 14, text: 'Elmlər Akademiyası Metro Stansiyası' });
+
+// Sual 15, 16, 17, 18, 19, 20 (qalan 6 sual)
+q2.slice(3).forEach((item, i) => {
+  const n = 15 + i;
+  add('question', { num: n, text: item.q, tur: 'II TUR', hasImage: item.hasImage });
+  add('answer', { num: n, text: item.a });
+});
+
+// III TUR
+add('tur', { tur: 'III TUR', subtitle: 'Biliklərinizi sınayın!' });
+
+const q3 = [
+  { q: '<span style="color:blue">Qarabağın mədəniyyət paytaxtı</span> hansı şəhərdir?', a: 'Şuşa' },
+  { q: 'Dünyada ilk <span style="color:green">kosmosa</span> uçan insan kim olub?', a: 'Yuri Qaqarin' },
+  { q: '<span style="color:yellow">"Aşıq"</span> sənətinin əsas musiqi aləti hansıdır?', a: 'Saz' },
+  { q: 'İngiltərənin pul vahidi nədir?', a: 'Funt Sterlinq' },
+  { q: 'Tam olaraq 30 gündən ibarət neçə ay var?', a: '4' },
+  { q: '2-ci Qarabağ müharibəsinin <span style="color:blue">Zəfər günü</span> nə zamandır (Gün, ay, il)?', a: '8 noyabr 2020' },
+  { q: 'Yer kürəsinin ən soyuq qitəsi hansıdır?', a: 'Antarktida' },
+  { q: 'Eyfel qülləsi hansı şəhərdə yerləşir?', a: 'Paris' },
+  { q: '"<span style="color:red">2 dəqiqə 5 saniyə + 13 saniyə = ?</span>" <br><span style="color:green">"?"</span> işarəsini saniyə ilə ifadə edin.', a: '138 saniyə' },
+  { q: 'Pizzanın vətəni hansı ölkədir?', a: 'İtaliya' }
+];
+q3.forEach((item, i) => {
+  const n = 20 + i + 1;
+  add('question', { num: n, text: item.q, tur: 'III TUR' });
+  add('answer', { num: n, text: item.a });
+});
+
+// BONUS TUR
+add('tur', { tur: 'BONUS TUR', subtitle: 'Xüsusi tapşırıqlar!' });
+
+// 31: Səssiz Sinema (sözlər göstərilmir!)
+add('silent', { num: 31 });
+
+// 32
+add('question', { num: 32, text: '2026-cı il futbol üzrə <span style="color:green">Dünya Çempionatının qalibi</span> hansı komanda oldu?', tur: 'BONUS TUR' });
+add('answer', { num: 32, text: 'İspaniya' });
+
+// 33
+add('question', { num: 33, text: 'Azərbaycan milli futbol komandasının <span style="color:blue">ən bahalı</span> oyunçularından birini yazın', tur: 'BONUS TUR' });
+add('answer', { num: 33, text: 'Elvin Cəfərquliyev<br>Toral Bayramov<br>Nəriman Axundzadə' });
+
+// 34
+add('question', { num: 34, text: 'Azərbaycanın Dövlət Bayrağında <span style="color:green">yaşıl</span> rəng nəyi ifadə edir?', tur: 'BONUS TUR' });
+add('answer', { num: 34, text: 'İslamı' });
+
+// 35: Əvvəlcə video, sonra sual, sonra cavab
+add('video', { num: 35, tur: 'BONUS TUR' });
+add('question', { num: 35, text: 'Göstərilən səhnədə <span style="color:red">obrazın</span> filmdəki adı nədir? <br><span style="color:gray">(Dinazavr balalarının onun övladı olduğunu iddia edən heyvan)</span>', tur: 'BONUS TUR' });
+add('answer', { num: 35, text: 'Sid' });
+
+// Final
+add('final', {});
+
+// ============================================
+// AUDIO MENECER
+// ============================================
+const AudioMgr = {
+  sounds: {},
+  load(name, src) {
+    const a = new Audio(src);
+    a.preload = 'auto';
+    this.sounds[name] = a;
+  },
+  play(name) {
+    const s = this.sounds[name];
+    if (s) { s.currentTime = 0; s.play().catch(()=>{}); }
+  },
+  stop(name) {
+    const s = this.sounds[name];
+    if (s) { s.pause(); s.currentTime = 0; }
+  },
+  stopAll() {
+    Object.values(this.sounds).forEach(s => { s.pause(); s.currentTime = 0; });
+  }
+};
+
+// Səsləri yüklə
+AudioMgr.load('question', CONFIG.questionSound);
+AudioMgr.load('answer', CONFIG.answerSound);
+
+// ============================================
+// TAYMER MENECER (TAM TƏMİZ)
+// ============================================
+const TimerMgr = {
+  interval: null,
+  remaining: 30,
+  paused: false,
+  activeSlide: null,
+
+  start(slideEl) {
+    this.stop(); // Əvvəlcə tam təmizlə
+    this.remaining = 30;
+    this.paused = false;
+    this.activeSlide = slideEl;
+
+    const display = slideEl.querySelector('.timer-display');
+    const label = slideEl.querySelector('.timer-label');
+    if (!display) return;
+
+    display.textContent = '30';
+    display.className = 'timer-display normal';
+    display.style.display = '';
+
+    // Əvvəlki "Time's Up" və countdown-ları təmizlə
+    slideEl.querySelectorAll('.times-up, .countdown-321').forEach(el => el.remove());
+
+    this.interval = setInterval(() => {
+      if (this.paused) return;
+      this.remaining--;
+
+      if (display) display.textContent = this.remaining;
+
+      if (this.remaining <= 5 && this.remaining > 0) {
+        display.classList.add('warning');
+        display.classList.remove('normal');
+      }
+
+      if (this.remaining <= 3 && this.remaining > 0) {
+        const ov = document.createElement('div');
+        ov.className = 'countdown-321';
+        ov.textContent = this.remaining;
+        const timerArea = slideEl.querySelector('.timer-area');
+        if (timerArea) timerArea.appendChild(ov);
+        setTimeout(() => ov.remove(), 700);
+      }
+
+      if (this.remaining <= 0) {
+        this.stop();
+        if (display) display.style.display = 'none';
+        const timerArea = slideEl.querySelector('.timer-area');
+        if (timerArea) {
+          const tu = document.createElement('div');
+          tu.className = 'times-up';
+          tu.textContent = "TIME'S UP!";
+          timerArea.appendChild(tu);
+        }
+      }
+    }, 1000);
+  },
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    this.remaining = 30;
+    this.paused = false;
+    this.activeSlide = null;
+  },
+
+  togglePause() {
+    if (!this.interval) return false;
+    this.paused = !this.paused;
+    if (this.activeSlide) {
+      const display = this.activeSlide.querySelector('.timer-display');
+      if (display) {
+        if (this.paused) {
+          display.classList.add('paused');
+          display.classList.remove('normal', 'warning');
+        } else {
+          display.classList.remove('paused');
+          if (this.remaining <= 5) display.classList.add('warning');
+          else display.classList.add('normal');
+        }
+      }
+    }
+    return this.paused;
+  }
+};
+
+// ============================================
+// KONFETTI
+// ============================================
+const Confetti = {
+  canvas: document.getElementById('confetti-canvas'),
+  ctx: null, particles: [], running: false,
+  init() {
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  },
+  resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+  burst() {
+    this.init();
+    const colors = ['#2d7dd2', '#f5a623', '#f8e71c', '#00d4ff', '#00e676', '#ff5252', '#9c27b0'];
+    for (let i = 0; i < 120; i++) {
+      this.particles.push({
+        x: window.innerWidth / 2, y: window.innerHeight / 2,
+        vx: (Math.random() - 0.5) * 18, vy: (Math.random() - 0.5) * 18 - 4,
+        size: Math.random() * 7 + 3, color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360, rotSpeed: (Math.random() - 0.5) * 8,
+        life: 1, decay: Math.random() * 0.008 + 0.004
+      });
+    }
+    if (!this.running) { this.running = true; this.animate(); }
+  },
+  animate() {
+    if (!this.running) return;
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.particles = this.particles.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.18;
+      p.rotation += p.rotSpeed; p.life -= p.decay;
+      if (p.life <= 0) return false;
+      this.ctx.save();
+      this.ctx.translate(p.x, p.y);
+      this.ctx.rotate(p.rotation * Math.PI / 180);
+      this.ctx.globalAlpha = p.life;
+      this.ctx.fillStyle = p.color;
+      this.ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      this.ctx.restore();
+      return true;
+    });
+    if (this.particles.length > 0) requestAnimationFrame(() => this.animate());
+    else { this.running = false; this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height); }
+  }
+};
+
+function spawnStars() {
+  const app = document.getElementById('app');
+  for (let i = 0; i < 18; i++) {
+    setTimeout(() => {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.textContent = ['⭐','✨','🌟','💫'][Math.floor(Math.random()*4)];
+      s.style.left = (Math.random()*80+10)+'%';
+      s.style.top = (Math.random()*40+30)+'%';
+      app.appendChild(s);
+      setTimeout(() => s.remove(), 2000);
+    }, i * 80);
+  }
+}
+
+// ============================================
+// RENDER
+// ============================================
+function renderSlides() {
+  const container = document.getElementById('slides-container');
+
+  slidesData.forEach((slide, index) => {
+    const el = document.createElement('div');
+    el.className = 'slide';
+    el.dataset.index = index;
+    let html = '';
+
+    switch (slide.type) {
+      case 'title':
+        el.classList.add('title-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="logo-wrap">
+            <img src="${CONFIG.logoPath}" alt="CoolabSchool" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="logo-fallback" style="display:none;">Coolab<br>School</div>
+          </div>
+          <h1 class="neon-text-blue">BİLİK YARIŞI</h1>
+          <p class="subtitle">CoolabSchool</p>
+          <div class="nav-hint"><kbd>→</kbd> ilə başla</div>
+        `;
+        break;
+
+      case 'rules':
+        el.classList.add('rules-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="glass-card rules-card">
+            <h2>QAYDALAR</h2>
+            ${slide.rules.map(r => `
+              <div class="rule-item"><span class="rule-icon">${r.icon}</span><span>${r.text}</span></div>
+            `).join('')}
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> ilə davam et</div>
+        `;
+        break;
+
+      case 'tur':
+        el.classList.add('tur-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <h2 class="neon-text-blue">${slide.tur}</h2>
+          <p class="tur-sub">${slide.subtitle}</p>
+          <div class="nav-hint"><kbd>→</kbd> ilə davam et</div>
+        `;
+        break;
+
+      case 'himcim':
+        el.classList.add('himcim-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <h2 class="neon-text-orange">HİM-CİM</h2>
+          <p class="himcim-sub">Fikirləşin, müzakirə edin... ⏸️</p>
+          <div class="nav-hint"><kbd>→</kbd> ilə davam et</div>
+        `;
+        break;
+
+      case 'question':
+        el.classList.add('question-slide');
+        let extra = '';
+        if (slide.hasImage) {
+          extra = `
+            <div class="media-box img-q19">
+              <img src="${CONFIG.q19ImagePath}" alt="Dot" onerror="this.style.display='none';this.parentElement.classList.add('media-placeholder');this.parentElement.innerHTML='<div class=\'ph-icon\'>🖼️</div><div>Şəkil yüklənmədi.<br>Fayl yolunu yoxlayın.</div>'">
+            </div>
+          `;
+        }
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">${slide.tur} · Sual ${slide.num}</div>
+          <div class="glass-card q-card">
+            <div class="q-number">SUAL ${slide.num}</div>
+            <div class="q-text">${slide.text}</div>
+            ${extra}
+            <div class="timer-area">
+              <div class="timer-display normal">30</div>
+              <div class="timer-label">⏱ 30 saniyə</div>
+              <div class="timer-pause-hint">Space = Dur / Davam et</div>
+            </div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> növbəti · <kbd>Space</kbd> taymeri durdur</div>
+        `;
+        break;
+
+      case 'answer':
+        el.classList.add('answer-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">Sual ${slide.num} · Cavab</div>
+          <div class="glass-card a-card">
+            <div class="answer-label">✓ Düzgün Cavab</div>
+            <div class="answer-text">${slide.text}</div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> ilə davam et</div>
+        `;
+        break;
+
+      case 'agirlik':
+        el.classList.add('question-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">I TUR · Sual ${slide.num}</div>
+          <div class="glass-card q-card">
+            <div class="q-number">SUAL ${slide.num}</div>
+            <div class="q-text" style="font-size:42px;font-weight:900;background:linear-gradient(135deg,var(--c-blue),var(--c-orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">AĞIRLIQ TESTİ</div>
+            <div style="font-size:24px;color:white(--text-dim);margin:20px 0;">Sizə verilmiş Kitabın çəkisini tapmağa çalışın</div>
+            <div style="font-size:18px;color:var(--c-yellow);margin-top:15px;">
+              <div style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;">
+                
+                <span>Doğru Cavaba Ən yaxın təxminə xal verilir</span>
+              </div>
+            </div>
+            <div class="timer-area" style="margin-top:25px;">
+              <div class="timer-display normal">30</div>
+              <div class="timer-label">⏱ 30 saniyə</div>
+              <div class="timer-pause-hint">Space = Dur / Davam et</div>
+            </div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> növbəti · <kbd>Space</kbd> taymeri durdur</div>
+        `;
+        break;
+
+      case 'metroSound':
+        el.classList.add('question-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">II TUR · Sual ${slide.num}</div>
+          <div class="glass-card q-card" style="padding:40px;">
+            <div class="q-number">SUAL ${slide.num}</div>
+            <div style="font-size:22px;color:var(--text-dim);margin-bottom:20px;">Səsi dinləyin və cavab verin</div>
+            <div class="media-box" style="width:400px;height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);">
+              <audio src="${CONFIG.metroSound}" controls style="width:90%;" onerror="this.parentElement.innerHTML='<div style=color:var(--text-dim);>Səs faylı tapılmadı</div>'"></audio>
+            </div>
+            <div style="font-size:16px;color:rgba(255,255,255,0.4);margin-top:15px;">▶️ Oynat düyməsinə basaraq səsi dinləyin</div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> suala keç</div>
+        `;
+        break;
+
+      case 'silent':
+        el.classList.add('question-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">BONUS TUR · Sual ${slide.num}</div>
+          <div class="glass-card silent-card">
+            <div class="silent-icon">🎭</div>
+            <div class="silent-title">SƏSSİZ SİNEMA</div>
+            <div class="silent-note">İştirakçı hazır olduqda növbəti slayda keçin.<br>Aparıcı sözləri ekranda görəcək.</div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> aparıcı sözləri görəcək</div>
+        `;
+        break;
+
+      case 'video':
+        el.classList.add('question-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <div class="slide-num">BONUS TUR · Video</div>
+          <div class="glass-card q-card" style="padding:30px;">
+            <div class="q-number" style="margin-bottom:20px;">SUAL ${slide.num} - VİDEO</div>
+            <div class="media-box vid-q35">
+              <video src="${CONFIG.q35VideoPath}" controls autoplay onerror="this.style.display='none';this.parentElement.classList.add('media-placeholder');this.parentElement.innerHTML='<div class=\'ph-icon\'>▶️</div><div>Video yüklənmədi.<br>Fayl yolunu yoxlayın.</div>'"></video>
+            </div>
+          </div>
+          <div class="nav-hint"><kbd>→</kbd> suala keç</div>
+        `;
+        break;
+
+      case 'final':
+        el.classList.add('final-slide');
+        html = `
+          <div class="bg-anim"></div>
+          <h2 class="neon-text-blue">ÇOX SAĞ OLUN!</h2>
+          <p class="final-sub">CoolabSchool</p>
+          <div class="final-logo">
+            <img src="${CONFIG.logoPath}" alt="CoolabSchool" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:20px;font-weight:900;color:#fff;\'>CS</div>'">
+          </div>
+          <div class="nav-hint"><kbd>←</kbd> geri · <kbd>Home</kbd> başa qayıt</div>
+        `;
+        break;
+    }
+
+    el.innerHTML = html;
+    container.appendChild(el);
+  });
+}
+
+// ============================================
+// NAVİQASIYA
+// ============================================
+let currentSlide = 0;
+
+function updateProgress() {
+  document.getElementById('progressBar').style.width = ((currentSlide / (slidesData.length - 1)) * 100) + '%';
+}
+
+function showSlide(index) {
+  if (index < 0 || index >= slidesData.length) return;
+
+  // ★ ƏVVƏLCƏ TAYMERİ TAM TƏMİZLƏ ★
+  TimerMgr.stop();
+
+  // Bütün slaydlardan countdown/times-up qalıqlarını təmizlə
+  document.querySelectorAll('.times-up, .countdown-321').forEach(el => el.remove());
+  document.querySelectorAll('.timer-display').forEach(el => {
+    el.textContent = '30';
+    el.className = 'timer-display normal';
+    el.style.display = '';
+  });
+
+  // Bütün səsləri dayandır
+  AudioMgr.stopAll();
+
+  // Slaydları gizlət/göstər
+  document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+  const slides = document.querySelectorAll('.slide');
+  slides[index].classList.add('active');
+  currentSlide = index;
+  updateProgress();
+
+  const slide = slidesData[index];
+  const activeEl = slides[index];
+
+  // Sual səsləri
+  if (slide.type === 'question' || slide.type === 'agirlik') {
+    AudioMgr.play('question');
+    setTimeout(() => {
+      const currentActive = document.querySelector('.slide.active');
+      if (currentActive && currentActive.dataset.index == index) {
+        TimerMgr.start(currentActive);
+      }
+    }, 600);
+  }
+
+  // Giriş səsi (başlıq slaydında)
+  if (slide.type === 'title') {
+    AudioMgr.load('intro', CONFIG.introSound);
+    setTimeout(() => { AudioMgr.play('intro'); }, 300);
+  }
+
+  if (slide.type === 'answer') {
+    AudioMgr.play('answer');
+    setTimeout(() => { Confetti.burst(); spawnStars(); }, 300);
+  }
+
+  if (slide.type === 'final') {
+    setTimeout(() => { Confetti.burst(); spawnStars(); }, 500);
+  }
+}
+
+function nextSlide() { showSlide(currentSlide + 1); }
+function prevSlide() { showSlide(currentSlide - 1); }
+
+// Klaviatura
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nextSlide();
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevSlide();
+  } else if (e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();
+    // Space yalnız sual slaydında taymeri durdurur
+    const slide = slidesData[currentSlide];
+    if (slide.type === 'question' || slide.type === 'agirlik') {
+      const isPaused = TimerMgr.togglePause();
+      // Vizual feedback
+      const hint = document.querySelector('.slide.active .timer-pause-hint');
+      if (hint) hint.textContent = isPaused ? '⏸️ Dayandırıldı - Space ilə davam et' : 'Space = Dur / Davam et';
+    }
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    showSlide(0);
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    showSlide(slidesData.length - 1);
+  }
+});
+
+// Kliklə keçid (nav-hint xaric)
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.nav-hint')) return;
+  // Video slaydında kliklə keçməyə icazə vermə (video idarəetməsi üçün)
+  const slide = slidesData[currentSlide];
+  if (slide.type === 'video') return;
+  nextSlide();
+});
+
+// Touch
+document.addEventListener('touchstart', e => { window._tsx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const d = window._tsx - e.changedTouches[0].clientX;
+  if (Math.abs(d) > 50) { d > 0 ? nextSlide() : prevSlide(); }
+});
+
+// ============================================
+// BAŞLAT
+// ============================================
+renderSlides();
+showSlide(0);
+</script>
+</body>
+</html>
